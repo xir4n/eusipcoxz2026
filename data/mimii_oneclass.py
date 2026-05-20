@@ -49,50 +49,50 @@ class MIMII_OneClass(pl.LightningDataModule):
             normalize_raw=normalize_raw,
         )
     
-def setup(self, stage=None):
-    torch.manual_seed(42)
-    generator = torch.Generator().manual_seed(42)
+    def setup(self, stage=None):
+        torch.manual_seed(42)
+        generator = torch.Generator().manual_seed(42)
 
-    num_folds = 5
-    assert 0 <= self.split_idx < num_folds, "split_idx must be in [0, 4]"
+        num_folds = 5
+        assert 0 <= self.split_idx < num_folds, "split_idx must be in [0, 4]"
 
-    dataset_size = len(self.base_set)
+        dataset_size = len(self.base_set)
 
-    indices = torch.randperm(dataset_size, generator=generator).tolist()
+        indices = torch.randperm(dataset_size, generator=generator).tolist()
 
-    fold_size = dataset_size // num_folds
-    fold_sizes = [fold_size] * num_folds
+        fold_size = dataset_size // num_folds
+        fold_sizes = [fold_size] * num_folds
 
-    for i in range(dataset_size % num_folds):
-        fold_sizes[i] += 1
+        for i in range(dataset_size % num_folds):
+            fold_sizes[i] += 1
 
-    start = sum(fold_sizes[:self.split_idx])
-    end = start + fold_sizes[self.split_idx]
+        start = sum(fold_sizes[:self.split_idx])
+        end = start + fold_sizes[self.split_idx]
 
-    test_indices = indices[start:end]
-    train_indices = indices[:start] + indices[end:]
+        test_indices = indices[start:end]
+        train_indices = indices[:start] + indices[end:]
 
-    self.train_positive = torch.utils.data.Subset(self.base_set, train_indices)
-    self.test_positive = torch.utils.data.Subset(self.base_set, test_indices)
+        self.train_positive = torch.utils.data.Subset(self.base_set, train_indices)
+        self.test_positive = torch.utils.data.Subset(self.base_set, test_indices)
 
-    if self.n_samples is not None:
-        assert self.n_samples > 0
-        num_samples = min(self.n_samples, len(self.train_positive))
+        if self.n_samples is not None:
+            assert self.n_samples > 0
+            num_samples = min(self.n_samples, len(self.train_positive))
 
-        sample_indices = torch.randperm(
-            len(self.train_positive),
-            generator=generator
-        )[:num_samples]
+            sample_indices = torch.randperm(
+                len(self.train_positive),
+                generator=generator
+            )[:num_samples]
 
-        self.train_positive = torch.utils.data.Subset(
-            self.train_positive,
-            sample_indices
-        )
+            self.train_positive = torch.utils.data.Subset(
+                self.train_positive,
+                sample_indices
+            )
 
-    self.test_set = torch.utils.data.ConcatDataset([
-        self.test_positive,
-        self.test_negative
-    ])
+        self.test_set = torch.utils.data.ConcatDataset([
+            self.test_positive,
+            self.test_negative
+        ])
 
     
     def train_dataloader(self):
