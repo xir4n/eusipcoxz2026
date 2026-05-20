@@ -48,6 +48,7 @@ class MIMII_OneClass(pl.LightningDataModule):
             data_path=self.data_path,
             normalize_raw=normalize_raw,
         )
+        self.split_idx = split_idx
     
     def setup(self, stage=None):
         torch.manual_seed(42)
