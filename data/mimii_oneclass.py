@@ -14,7 +14,6 @@ class MIMII_OneClass(pl.LightningDataModule):
             machine_type=0,
             machine_id=0,
             split_idx=0,
-            preprocess=False,
             normalize_raw=True,
             num_samples=None,
             data_path=None,
@@ -38,7 +37,6 @@ class MIMII_OneClass(pl.LightningDataModule):
             normal=True,
             label=0,
             data_path=self.data_path,
-            preprocess=preprocess,
             normalize_raw=normalize_raw,
         )
         self.test_negative = BaseDataSet(
@@ -48,7 +46,6 @@ class MIMII_OneClass(pl.LightningDataModule):
             normal=False,
             label=1,
             data_path=self.data_path,
-            preprocess=preprocess,
             normalize_raw=normalize_raw,
         )
     
