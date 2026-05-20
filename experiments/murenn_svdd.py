@@ -55,7 +55,7 @@ class MurennExperiment(BaseExperiment, pl.LightningModule):
         loss = torch.mean(dist)
         return loss
 
-    def on_train_start(self):
+    def on_fit_start(self):
         if self.svdd_c is None:
             self.svdd_c_init()
 
