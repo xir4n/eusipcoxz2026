@@ -144,7 +144,7 @@ class MurennExperiment(BaseExperiment, pl.LightningModule):
         return [optimizer], [scheduler]
 
 
-def configuration(snr, arch, machine_type, machine_id, split_idx, lr, nu, batch_size, num_samples, save_folder, J, Q, T, J_phi, mode, use_power):
+def configuration(snr, machine_type, machine_id, split_idx, lr, batch_size, num_samples, save_folder, J, Q, T, J_phi, mode, use_power):
 
     return {
         "arch": "LearnableScattering",
@@ -201,7 +201,6 @@ if __name__ == "__main__":
     parser.add_argument('--snr', type=int, default=0, choices=[0, 6, -6], help='Signal-to-Noise Ratio')
     parser.add_argument('--machine_type', type=int, default=0, choices=[0, 1, 2, 3], help='Machine type')
     parser.add_argument('--machine_id', type=int, default=0, choices=[0, 2, 4, 6], help='Machine ID')
-    parser.add_argument('--arch', type=str, default='LearnableScattering', choices=['LearnableScattering', 'LearnableScattering_D', 'LearnableScatteringMix'], help='Model architecture')
     parser.add_argument('--lr', type=float, default=1e-4, help='Learning rate')
     parser.add_argument('--batch_size', type=int, default=64, help='Batch size')
     parser.add_argument('--num_samples', type=int, default=None, help='Number of samples to use for training')
@@ -220,7 +219,6 @@ if __name__ == "__main__":
         split_idx=parser.parse_args().split_idx,
         lr=parser.parse_args().lr,
         batch_size=parser.parse_args().batch_size,
-        arch=parser.parse_args().arch,
         num_samples=parser.parse_args().num_samples,
         save_folder=parser.parse_args().save_folder,
         J=parser.parse_args().J,

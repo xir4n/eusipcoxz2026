@@ -53,7 +53,6 @@ for snr in [-6, 0, 6]:
 
                 cmd_args = [
                     module_name,
-                    "--arch LearnableScattering",
                     f"--save_folder {save_folder}/{experiment_name}",
                     f"--J {' '.join(map(str, J))}",
                     f"--Q {' '.join(map(str, Q))}",
