@@ -23,11 +23,13 @@ class MurennExperiment(BaseExperiment, pl.LightningModule):
     def svdd_c_init(self):
         print('Initializing SVDD center c...')
         self.dataset.setup()
+        device = self.device
         dataloadr = self.dataset.train_dataloader()
         with torch.no_grad():
             scores = []
             for i, batch in enumerate(dataloadr):
-                outputs = self.network(batch['sample'])
+                x = batch["sample"].to(device)
+                outputs = self.network(x)
                 scores.append(outputs)
             scores = torch.cat(scores, dim=0)
         c = torch.mean(scores, dim=0, keepdim=True)
