@@ -15,7 +15,7 @@ INVERSE_SNR_MAP = {
 module_name = "experiments.murenn_svdd"
 script_path = f'/home/cz7tygkr@cnrs.fr/eusipcoxz2026'
 project_name = "train_murenn"
-save_folder = f'/scratch/nautilus/users/cz7tygkr@cnrs.fr/icasspxz2026/scripts/{project_name}'
+save_folder = f'/home/cz7tygkr@cnrs.fr/outputs/{project_name}'
 os.makedirs(save_folder, exist_ok=True)
 
 # JQT hyperparameters
