@@ -8,6 +8,55 @@ import murenn
 import time
 from speechbrain.nnet.normalization import PCEN
 
+class PowerStable(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, x, alpha, beta):
+        x = x.clamp(min=-beta)
+        output = (x + beta) ** alpha 
+        ctx.save_for_backward(x, alpha, beta, output)
+        return output
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        x, alpha, beta, output = ctx.saved_tensors
+        dx, dalpha, dbeta = None, None, None
+        if ctx.needs_input_grad[0]:
+            dx = grad_output * alpha * ((x+beta) ** (alpha - 1))
+            dx.masked_fill_(output == 0, 0)
+        if ctx.needs_input_grad[1]:
+            dalpha = grad_output * output * torch.log((x+beta))
+            dalpha.masked_fill_(output == 0, 0)
+        if ctx.needs_input_grad[2]:
+            dbeta = grad_output * alpha * ((x+beta) ** (alpha - 1))
+            dbeta.masked_fill_(output == 0, 0)
+        return dx, dalpha, dbeta
+
+
+class Downsampling(torch.nn.Module):
+    """
+    Downsample the input signal by a factor of 2**J_phi.
+    --------------------
+    Args:
+        J_phi (int): Number of levels of downsampling.
+    """
+    def __init__(self, J_phi):
+        super().__init__()
+        self.J_phi = J_phi
+        # We are using a 13-tap low-pass filter
+        self.phi = murenn.DTCWT(
+            J=1,
+            level1="near_sym_b",
+            skip_hps=True,
+        )
+        self.relu = torch.nn.ReLU()
+
+
+    def forward(self, x):
+        for j in range(self.J_phi):
+            x, _ = self.phi(x)
+            x = x[:,:,::2]
+        return x
+
 class PsiModDn(torch.nn.Module):
     """
     Convolve with psi, then apply modulus, and downsample.
@@ -61,8 +110,8 @@ class PsiModDn(torch.nn.Module):
         return u_psi_x
 
 
-class LearnableScattering(nn.Module):
-    def __init__(self, J, Q, T, J_phi, use_power=True, mode='avg'):
+class TwoLayerMurenn(nn.Module):
+    def __init__(self, J, Q, T, J_phi, use_power=True):
         super().__init__()
         depth = len(J)
         self.stages = nn.ModuleList([])
@@ -134,54 +183,6 @@ class LearnableScattering(nn.Module):
         s_x = s_x * weight
         return s_x.squeeze(1)
 
-class PowerStable(torch.autograd.Function):
-    @staticmethod
-    def forward(ctx, x, alpha, beta):
-        x = x.clamp(min=-beta)
-        output = (x + beta) ** alpha 
-        ctx.save_for_backward(x, alpha, beta, output)
-        return output
-
-    @staticmethod
-    def backward(ctx, grad_output):
-        x, alpha, beta, output = ctx.saved_tensors
-        dx, dalpha, dbeta = None, None, None
-        if ctx.needs_input_grad[0]:
-            dx = grad_output * alpha * ((x+beta) ** (alpha - 1))
-            dx.masked_fill_(output == 0, 0)
-        if ctx.needs_input_grad[1]:
-            dalpha = grad_output * output * torch.log((x+beta))
-            dalpha.masked_fill_(output == 0, 0)
-        if ctx.needs_input_grad[2]:
-            dbeta = grad_output * alpha * ((x+beta) ** (alpha - 1))
-            dbeta.masked_fill_(output == 0, 0)
-        return dx, dalpha, dbeta
-
-
-class Downsampling(torch.nn.Module):
-    """
-    Downsample the input signal by a factor of 2**J_phi.
-    --------------------
-    Args:
-        J_phi (int): Number of levels of downsampling.
-    """
-    def __init__(self, J_phi):
-        super().__init__()
-        self.J_phi = J_phi
-        # We are using a 13-tap low-pass filter
-        self.phi = murenn.DTCWT(
-            J=1,
-            level1="near_sym_b",
-            skip_hps=True,
-        )
-        self.relu = torch.nn.ReLU()
-
-
-    def forward(self, x):
-        for j in range(self.J_phi):
-            x, _ = self.phi(x)
-            x = x[:,:,::2]
-        return x
 
 
 if __name__ == '__main__':
@@ -190,7 +191,7 @@ if __name__ == '__main__':
     Q = [8, 1]
     T = [16, 1]
     J_phi = [8, 6]
-    model = LearnableScattering(J=J, Q=Q, T=T, J_phi=J_phi, use_power=False, mode='fc')
+    model = TwoLayerMurenn(J=J, Q=Q, T=T, J_phi=J_phi)
     output = model(x)
     print(output.shape)
     # cout the number of parameters

@@ -149,7 +149,7 @@ class MurennExperiment(BaseExperiment, pl.LightningModule):
 def configuration(snr, machine_type, machine_id, split_idx, lr, batch_size, num_samples, save_folder, J, Q, T, J_phi, mode, use_power):
 
     return {
-        "arch": "LearnableScattering",
+        "arch": "TwoLayerMurenn",
         "model_save_path" : os.path.join(save_folder),
         "dataset_settings" : {
             "class_name": "MIMII_OneClass",

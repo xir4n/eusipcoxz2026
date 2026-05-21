@@ -1,2 +1,2 @@
-from .learnable_scattering import LearnableScattering
+from .network import TwoLayerMurenn
 from .scattering_transform import ScatteringTransform
