@@ -1,12 +1,9 @@
 import math
 import torch
 import torch.nn as nn
-from torch.autograd import Variable
 from murenn import UDTCWT
 from murenn.dtcwt.nn import ModulusStable
 import murenn
-import time
-from speechbrain.nnet.normalization import PCEN
 
 class PowerStable(torch.autograd.Function):
     @staticmethod
